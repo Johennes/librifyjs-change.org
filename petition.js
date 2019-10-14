@@ -24,6 +24,7 @@
         return
     }
 
+    normalizeFormFields()
     connectAddressButtonClick()
     connectSubmitButtonClick()
 
@@ -42,6 +43,19 @@
         if (appData) {
             console.log('LibrifyJS: Located app data')
             return JSON.parse(appData.textContent)
+        }
+    }
+
+    // Form Field Normalization
+
+    function normalizeFormFields() {
+        let firstNameInput = document.querySelector('input[name=firstName]')
+        if (firstNameInput) {
+            firstNameInput.setAttribute('name', 'first_name')
+        }
+        let lastNameInput = document.querySelector('input[name=lastName]')
+        if (lastNameInput) {
+            lastNameInput.setAttribute('name', 'last_name')
         }
     }
 
@@ -108,7 +122,7 @@
                 <div class="control">
                     <div class="input">
                         <div class="form-select">
-                            <select id="stateCode" autocomplete="state" name="stateCode" style="display: none;"></select>
+                            <select autocomplete="state" name="state_code" style="display: none;"></select>
                         </div>
                     </div>
                 </div>
@@ -139,7 +153,7 @@
     }
 
     function updateStateField(countryCode) {
-        let stateField = document.querySelector('select[name=stateCode]')
+        let stateField = document.querySelector('select[name=state_code]')
         if (!stateField) {
             console.warn('LibrifyJS: Could not locate state field')
             return
@@ -194,7 +208,7 @@
             console.error('LibrifyJS: Could not locate petition ID')
             return
         }
-        let formData = getFormData()
+        let formData = getFormData(petitionId, clientDataObj)
         if (!formData) {
             console.error('LibrifyJS: Could not load form data')
             return
@@ -203,11 +217,12 @@
             .then(response => response.json())
             .catch(onSubmissionError)
             .then(json => {
-                if (!json['success'] && !json['graylisted']) {
+                let redirectUrl = json['redirect_to']
+                if (!redirectUrl) {
                     onSubmissionError(`${JSON.stringify(json)}`)
                     return
                 }
-                window.location.href = `https://www.change.org/p/${petitionId}/psf/promote_or_share`
+                window.location.href = redirectUrl
             })
     }
 
@@ -260,7 +275,79 @@
         return summary.id
     }
 
-    function getFormData() {
+    function getFirstNameFromClientData(clientData) {
+        let appData = clientData['appData']
+        if (!appData) {
+            return null
+        }
+        let user = appData['currentUser']
+        if (!user) {
+            return null
+        }
+        return user['first_name']
+    }
+
+    function getLastNameFromClientData(clientData) {
+        let appData = clientData['appData']
+        if (!appData) {
+            return null
+        }
+        let user = appData['currentUser']
+        if (!user) {
+            return null
+        }
+        return user['last_name']
+    }
+
+    function getCityFromClientData(clientData) {
+        let appData = clientData['appData']
+        if (!appData) {
+            return null
+        }
+        let user = appData['currentUser']
+        if (!user) {
+            return null
+        }
+        return user['city']
+    }
+
+    function getStateFromClientData(clientData) {
+        let appData = clientData['appData']
+        if (!appData) {
+            return null
+        }
+        let user = appData['currentUser']
+        if (!user) {
+            return null
+        }
+        return user['state_code']
+    }
+
+    function getCountryFromClientData(clientData) {
+        let appData = clientData['appData']
+        if (!appData) {
+            return null
+        }
+        let user = appData['currentUser']
+        if (!user) {
+            return null
+        }
+        return user['country_code']
+    }
+
+    function getEmailFromClientData(clientData) {
+        let appData = clientData['appData']
+        if (!appData) {
+            return null
+        }
+        let user = appData['currentUser']
+        if (!user) {
+            return null
+        }
+        return user['email']
+    }
+
+    function getFormData(petitionId, clientData) {
         let form = document.querySelector('form[name=sign-form]')
         if (!form) {
             form = document.querySelector('form.sign')
@@ -269,6 +356,27 @@
             }
         }
         let formData = new FormData(form)
+        if (!formData.get('petition_id')) {
+            formData.append('petition_id', petitionId)
+        }
+        if (!formData.get('first_name')) {
+            formData.append('first_name', getFirstNameFromClientData(clientData))
+        }
+        if (!formData.get('last_name')) {
+            formData.append('last_name', getLastNameFromClientData(clientData))
+        }
+        if (!formData.get('city')) {
+            formData.append('city', getCityFromClientData(clientData))
+        }
+        if (!formData.get('state_code')) {
+            formData.append('state_code', getStateFromClientData(clientData))
+        }
+        if (!formData.get('country_code')) {
+            formData.append('country_code', getCountryFromClientData(clientData))
+        }
+        if (!formData.get('email')) {
+            formData.append('email', getEmailFromClientData(clientData))
+        }
         let marketingConsentSelection = document.querySelector('input[name=marketing_comms_consent]:checked')
         formData.append('marketing_comms_consent', marketingConsentSelection ? marketingConsentSelection.value : false)
         let shareInfoInput = document.querySelector('input[name=share_info]')
@@ -282,7 +390,7 @@
         return new Request(`https://www.change.org/api-proxy/-/signatures/${petitionId}`, {
             'credentials': 'include',
             referrer: window.location.href,
-            body: JSON.stringify(Object.fromEntries(formData)),
+            body: createBody(formData),
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -291,6 +399,14 @@
                 'X-Requested-With': 'XMLHttpRequest'
             }
         })
+    }
+
+    function createBody(formData) {
+        let body = {}
+        formData.forEach((value, key) => {
+            body[key] = value
+        })
+        return JSON.stringify(body)
     }
 
     function onSubmissionError(error) {
