@@ -359,22 +359,22 @@
         if (!formData.get('petition_id')) {
             formData.append('petition_id', petitionId)
         }
-        if (!formData.get('first_name')) {
+        if (!formData.get('first_name') && clientData) {
             formData.append('first_name', getFirstNameFromClientData(clientData))
         }
-        if (!formData.get('last_name')) {
+        if (!formData.get('last_name') && clientData) {
             formData.append('last_name', getLastNameFromClientData(clientData))
         }
-        if (!formData.get('city')) {
+        if (!formData.get('city') && clientData) {
             formData.append('city', getCityFromClientData(clientData))
         }
-        if (!formData.get('state_code')) {
+        if (!formData.get('state_code') && clientData) {
             formData.append('state_code', getStateFromClientData(clientData))
         }
-        if (!formData.get('country_code')) {
+        if (!formData.get('country_code') && clientData) {
             formData.append('country_code', getCountryFromClientData(clientData))
         }
-        if (!formData.get('email')) {
+        if (!formData.get('email') && clientData) {
             formData.append('email', getEmailFromClientData(clientData))
         }
         let marketingConsentSelection = document.querySelector('input[name=marketing_comms_consent]:checked')
