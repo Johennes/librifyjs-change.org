@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "LibrifyJS: change.org",
+  "name": "LibrifyJS: change.org (experimental)",
   "version": "0.1.2",
   "description": "Libre replacement for JavaScript blocked by GNU LibreJS on change.org",
   "content_scripts": [
