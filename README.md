@@ -1,7 +1,19 @@
 # LibrifyJS: change.org
 
-A Firefox extension that allows to sign petitions on change.org in
-coordination with GNU LibreJS.
+A Firefox extension for replacing the JavaScript blocked by GNU LibreJS on change.org
+with free / libre code.
+
+## Status
+
+⚠️ This extension is currently experimental and unfinished.
+
+### What Works
+
+- Petition signing form (in some cases)
+
+### What Doesn't Work
+
+- Probably anything else
 
 ## License
 
